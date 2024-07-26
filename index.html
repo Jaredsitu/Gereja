@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootstrap Site</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
+  <style>
+    #map {
+      height: 100%;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #description {
+      font-family: Roboto;
+      font-size: 15px;
+      font-weight: 300;
+    }
+
+    #infowindow-content .title {
+      font-weight: bold;
+    }
+
+    #infowindow-content {
+      display: none;
+    }
+
+    #map #infowindow-content {
+      display: inline;
+    }
+
+    .pac-card {
+      margin: 10px 10px 0 0;
+      border-radius: 2px 0 0 2px;
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      outline: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      background-color: #fff;
+      font-family: Roboto;
+    }
+
+    #pac-container {
+      padding-bottom: 12px;
+      margin-right: 12px;
+    }
+
+    .pac-controls {
+      display: inline-block;
+      padding: 5px 11px;
+    }
+
+    .pac-controls label {
+      font-family: Roboto;
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    #pac-input {
+      background-color: #fff;
+      font-family: Roboto;
+      font-size: 15px;
+      font-weight: 300;
+      margin-left: 12px;
+      padding: 0 11px 0 13px;
+      text-overflow: ellipsis;
+      width: 400px;
+    }
+
+    #pac-input:focus {
+      border-color: #4d90fe;
+    }
+
+    #title {
+      color: #fff;
+      background-color: #4d90fe;
+      font-size: 25px;
+      font-weight: 500;
+      padding: 6px 12px;
+    }
+    #target {
+      width: 345px;
+    }
+    .box {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      width: 260px;
+      height: 200px;
+      background-color: #f0f0f0;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+  }
+  .tag {
+    position: absolute;
+      bottom: 1px;
+      right: 30px;
+      width: 145px;
+      height: 1px;
+      color: #4d90fe;
+      opacity: 50%;
+      font-size: small;
+  }
+  .navbar {
+          overflow: hidden;
+          background-color: #333;
+      }
+
+      /* Navbar links */
+      .navbar a {
+          float: left;
+          display: block;
+          color: white;
+          text-align: center;
+          padding: 14px 20px;
+          text-decoration: none;
+      }
+
+      /* Change color on hover */
+      .navbar a:hover {
+          background-color: #ddd;
+          color: black;
+      }
+  </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Wilayah</a>
+        <a href="Lingkungan.html">Lingkungan</a>
+    </div>
+      <input id="pac-input" class="controls" type="text" placeholder="Input your location here...">
+      <div id="map">
+          
+        <script>
+  
+          function initAutocomplete() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 14,
+            center: {lat: -6.240555431778528, lng: 106.78744159242352}
+          });
+    
+          map.data.loadGeoJson("Maps/Paroki_Blok_B_-_Wilayah_13_Mei_2016.geojson");
+    
+            var input = document.getElementById('pac-input');
+            var searchBox = new google.maps.places.SearchBox(input);
+            map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+    
+            map.addListener('bounds_changed', function() {
+              searchBox.setBounds(map.getBounds());
+            });
+    
+            var markers = [];
+            searchBox.addListener('places_changed', function() {
+              var places = searchBox.getPlaces();
+    
+              if (places.length == 0) {
+                return;
+              }
+    
+              markers.forEach(function(marker) {
+                marker.setMap(null);
+              });
+              markers = [];
+    
+              var bounds = new google.maps.LatLngBounds();
+              places.forEach(function(place) {
+                if (!place.geometry) {
+                  console.log("Returned place contains no geometry");
+                  return;
+                }
+                var icon = {
+                  url: place.icon,
+                  size: new google.maps.Size(71, 71),
+                  origin: new google.maps.Point(0, 0),
+                  anchor: new google.maps.Point(17, 34),
+                  scaledSize: new google.maps.Size(25, 25)
+                };
+    
+                markers.push(new google.maps.Marker({
+                  map: map,
+                  icon: icon,
+                  title: place.name,
+                  position: place.geometry.location
+                }));
+    
+                if (place.geometry.viewport) {
+                  bounds.union(place.geometry.viewport);
+                } else {
+                  bounds.extend(place.geometry.location);
+                }
+              });
+    
+              map.fitBounds(bounds);
+            });
+            var infowindow = new google.maps.InfoWindow();
+  
+            var box = document.getElementById("myBox");
+            box.style.display = "none";
+  
+            if (box.style.display === "none") {
+              box.style.display = "block";
+          } else {
+              box.style.display = "none";
+          }
+        
+            map.data.addListener('click', function(event) {
+              let wilayah = event.feature.getProperty("Name");
+            let html = 'Wilayah: ' + wilayah;
+            let nomor = event.feature.getProperty("Nomor");
+            let nama = event.feature.getProperty("Nama");
+            infowindow.setContent(html); 
+            infowindow.setPosition(event.latLng); 
+            infowindow.setOptions({pixelOffset: new google.maps.Size(0,-30)}); 
+            infowindow.open(map);
+            document.getElementById("wilayah").innerText = wilayah;
+            document.getElementById("nomor").innerText = nomor;
+            document.getElementById("nama").innerText = nama;
+          
+            
+          });
+          
+            map.data.setStyle({
+              fillColor: 'green',
+              strokeWeight: 1
+            });
+          }
+    
+          
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAtJBMTiviNkvNjgl1s89glbmsU1PMMNFw&libraries=places&callback=initAutocomplete"
+             async defer>
+            </script>
+      </div>
+      <div class="box" id="myBox">
+        <h2>Informasi</h2>
+        <p>Wilayah: <span id="wilayah"></span></p>
+        <h3>Koordinator Wilayah</h3>
+        <p>Nama: <span id="nama"></span></p>
+        <p>Nomor: <span id="nomor"></span></p>
+        <p>Alamat: <span id="alamat"></span></p>
+  
+    </div>
+    <div class="tag">
+      <p>Jared Josua Sitmorang</p>
+  </div>
+</body>
+</html>
